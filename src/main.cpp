@@ -1,11 +1,5 @@
 // ESP32: WS2812 лента (60 диодов) + 2 датчика движения HC-SR501 + WiFi Web Config
 // 
-// Подключения:
-//   WS2812  -> GPIO 5
-//   HC-SR501 #1 -> GPIO 33
-//   HC-SR501 #2 -> GPIO 34
-//   HC-SR501: VCC -> 5V, GND -> GND, OUT -> GPIO
-// 
 // Логика:
 //   Лента разделена на 2 сегмента по 30 диодов
 //   Сегмент 1 (диоды 0-29) управляется датчиком #1 (GPIO 33)
@@ -13,14 +7,8 @@
 //   При первом включении: тест радугой по всей ленте
 //   Яркость настраивается через веб-интерфейс
 // 
-// Веб-интерфейс:
-//   Подключитесь к сети WiFi "LED-Controller" (пароль: 12345678)
-//   или к вашей сети, если настроены credentials
-//   Откройте в браузере: http://<IP_адрес_ESP32>/
-
-// ========== Настройки WiFi (измените на свои) ==========
-#define WIFI_SSID "Beeline_2G_FF5834"      // Имя вашей WiFi сети
-#define WIFI_PASS "Gq6fersG"  // Пароль от WiFi
+#define WIFI_SSID "Beeline_2G_FF5834"     
+#define WIFI_PASS "Gq6fersG"  
 #define AP_SSID "LED-Controller"        // Имя точки доступа (если WiFi не подключен)
 #define AP_PASS "12345678"              // Пароль точки доступа
 #define MAX_WIFI_RETRY_ATTEMPTS    10   // Максимум попыток подключения к WiFi
@@ -28,9 +16,9 @@
 #define WIFI_CONNECT_TIMEOUT       30000 // Таймаут соединения с WiFi (мс)
 
 // ========== Настройки ленты ==========
-#define NEOPIXEL_PIN    5     // Пин для ленты WS2812
-#define PIR_PIN_1       33    // Пин для датчика HC-SR501 #1
-#define PIR_PIN_2       34    // Пин для датчика HC-SR501 #2
+#define NEOPIXEL_PIN    5     // Пин для ленты
+#define PIR_PIN_1       33    // Пин для датчика #1
+#define PIR_PIN_2       34    // Пин для датчика #2
 #define TOTAL_PIXELS    60    // Общее количество светодиодов
 #define SEGMENT_SIZE    30    // Размер каждого сегмента
 
@@ -155,7 +143,7 @@ void validateLoadedSettings() {
 // ========== Загрузка настроек из EEPROM ==========
 void loadSettings() {
   if (!EEPROM.begin(512)) {
-    Serial.println("❌ ERROR: Failed to initialize EEPROM");
+    Serial.println("ERROR: Failed to initialize EEPROM");
     return;
   }
   
@@ -178,7 +166,7 @@ void loadSettings() {
     }
     
     if (readError) {
-      Serial.println("⚠️  WARNING: EEPROM data corruption detected, resetting settings");
+      Serial.println("WARNING: EEPROM data corruption detected, resetting settings");
       // Устанавливаем настройки по умолчанию при повреждении данных
       settings.brightness1 = DEFAULT_BRIGHTNESS_1;
       settings.brightness2 = DEFAULT_BRIGHTNESS_2;
@@ -216,7 +204,7 @@ void loadSettings() {
     settings.useWiFi = true;
     
     // Автоматически сохраняем дефолтные настройки
-    Serial.println("ℹ️  No saved settings found, applying defaults");
+    Serial.println("No saved settings found, applying defaults");
     saveSettings();
   }
   
@@ -227,7 +215,7 @@ void loadSettings() {
 // ========== Сохранение настроек в EEPROM ==========
 void saveSettings() {
   if (!EEPROM.begin(512)) {
-    Serial.println("❌ ERROR: Failed to initialize EEPROM for write");
+    Serial.println("ERROR: Failed to initialize EEPROM for write");
     return;
   }
   
@@ -241,11 +229,11 @@ void saveSettings() {
   }
   
   EEPROM.commit();
-  Serial.println("✅ Settings saved to EEPROM");
+  Serial.println("Settings saved to EEPROM");
   EEPROM.end();
 }
 
-// ========== Подключение к WiFi (с улучшенной надежностью) ==========
+// ========== Подключение к WiFi  ==========
 void startWiFi() {
   loadSettings();
   
@@ -253,7 +241,7 @@ void startWiFi() {
   validateCredentials(settings.wifiSSID, settings.wifiPass);
   
   if (settings.useWiFi && strlen(settings.wifiSSID) > 0) {
-    Serial.print("\n📶 Attempting to connect to WiFi: ");
+    Serial.print("\n Attempting to connect to WiFi: ");
     Serial.println(settings.wifiSSID);
     
     int retryCount = 0;
@@ -286,7 +274,7 @@ void startWiFi() {
       }
       
       if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("\n✅ WiFi connected successfully!");
+        Serial.println("\n WiFi connected successfully!");
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
         Serial.print("RSSI: ");
@@ -297,10 +285,10 @@ void startWiFi() {
           wifiConnected = true;
           return;
         } else {
-          Serial.println("\n⚠️  Connected but no IP address obtained");
+          Serial.println("\n Connected but no IP address obtained");
         }
       } else {
-        Serial.print(" ❌ Attempt ");
+        Serial.print("Attempt ");
         Serial.print(retryCount);
         Serial.print(" failed. Retrying in ");
         Serial.println(WIFI_RECONNECT_DELAY / 1000);
@@ -310,11 +298,11 @@ void startWiFi() {
       }
     }
     
-    Serial.println("\n❌ Max retry attempts reached, unable to connect");
+    Serial.println("\n Max retry attempts reached, unable to connect");
   }
   
   // Если не получилось подключиться к WiFi - создаем точку доступа
-  Serial.println("\n📡 Starting Access Point mode...");
+  Serial.println("\n Starting Access Point mode...");
   WiFi.mode(WIFI_AP);
   WiFi.softAP(AP_SSID, AP_PASS);
   Serial.print("AP IP address: ");
@@ -326,13 +314,13 @@ void startWiFi() {
 // ========== Валидация учетных данных WiFi ==========
 bool validateCredentials(const char* ssid, const char* pass) {
   if (ssid == nullptr || ssid[0] == '\0') {
-    Serial.println("❌ ERROR: Empty SSID");
+    Serial.println("ERROR: Empty SSID");
     return false;
   }
   
   size_t len = strlen(ssid);
   if (len > sizeof(settings.wifiSSID) - 1) {
-    Serial.print("⚠️  SSID too long (");
+    Serial.print("SSID too long (");
     Serial.print(len);
     Serial.print("), max ");
     Serial.println(sizeof(settings.wifiSSID) - 1);
@@ -340,14 +328,14 @@ bool validateCredentials(const char* ssid, const char* pass) {
   }
   
   if (pass == nullptr) {
-    Serial.println("⚠️  WARNING: Empty password, will use default");
+    Serial.println("WARNING: Empty password, will use default");
     pass = WIFI_PASS;
   }
   
   // Проверяем длину пароля (не более 64 символов)
   size_t passLen = strlen(pass);
   if (passLen > sizeof(settings.wifiPass) - 1) {
-    Serial.print("⚠️  Password too long (");
+    Serial.print("Password too long (");
     Serial.print(passLen);
     Serial.println("), truncating...");
     passLen = sizeof(settings.wifiPass) - 1;
@@ -368,14 +356,14 @@ bool isIPValid(IPAddress ip) {
 void onWiFiEvent(WiFiEvent_t event) {
   switch (event) {
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-      Serial.println("\n❌ WiFi disconnected");
+      Serial.println("\nWiFi disconnected");
       wifiConnected = false;
       // Планируем переподключение через короткий интервал
       delay(1000);
       break;
       
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-      Serial.println("\n✅ WiFi connected with IP address");
+      Serial.println("\nWiFi connected with IP address");
       Serial.print("IP: ");
       Serial.println(WiFi.localIP());
       wifiConnected = true;
