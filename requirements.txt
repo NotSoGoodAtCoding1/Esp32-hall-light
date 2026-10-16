@@ -1,0 +1,7 @@
+# ESP32 LED Controller Project Requirements
+# =========================================
+# This project is built with PlatformIO using the ESP32 Arduino framework.
+# The libraries listed here are managed via platformio.ini lib_deps.
+
+adafruit-circuitpython-neopixel>=1.15.5  # Adafruit NeoPixel library for WS2812 RGB LEDs
+arduinojson>=7.0                         # JSON parsing library for web configuration
