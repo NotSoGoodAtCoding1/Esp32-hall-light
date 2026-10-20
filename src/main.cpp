@@ -7,8 +7,8 @@
 //   При первом включении: тест радугой по всей ленте
 //   Яркость настраивается через веб-интерфейс
 // 
-#define WIFI_SSID "Beeline_2G_FF5834"     
-#define WIFI_PASS "Gq6fersG"  
+#define WIFI_SSID ""     
+#define WIFI_PASS ""  
 #define AP_SSID "LED-Controller"        // Имя точки доступа (если WiFi не подключен)
 #define AP_PASS "12345678"              // Пароль точки доступа
 #define MAX_WIFI_RETRY_ATTEMPTS    10   // Максимум попыток подключения к WiFi
